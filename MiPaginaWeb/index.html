@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EC StreamLand | Juegos para TikTok Live</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --neon:       #00f5d4;
+            --neon2:      #f700ff;
+            --neon3:      #ffe600;
+            --bg:         #060612;
+            --bg2:        #0d0d1f;
+            --glass:      rgba(255,255,255,0.04);
+            --glass-b:    rgba(0,245,212,0.12);
+            --text:       #e8eaf6;
+            --muted:      #6b7280;
+            --wa:         #25D366;
+            --radius:     16px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ─── CANVAS BG ─── */
+        #bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+        /* ─── NAV ─── */
+        nav {
+            position: sticky; top: 0; z-index: 200;
+            background: rgba(6,6,18,0.85); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0,245,212,0.15);
+        }
+        .nav-inner {
+            max-width: 1100px; margin: 0 auto; padding: 1rem 2rem;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo {
+            font-family: 'Orbitron', monospace; font-weight: 900; font-size: 1.35rem;
+            letter-spacing: 0.05em; background: linear-gradient(90deg, var(--neon), var(--neon2));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; text-shadow: none; position: relative;
+        }
+        .logo::after {
+            content: ''; position: absolute; bottom: -4px; left: 0;
+            width: 100%; height: 1px; background: linear-gradient(90deg, var(--neon), transparent);
+        }
+        .tabs { display: flex; gap: 0.5rem; }
+        .tab-btn {
+            font-family: 'Rajdhani', sans-serif; font-weight: 600; font-size: 1rem;
+            letter-spacing: 0.08em; text-transform: uppercase; background: none;
+            border: 1px solid transparent; color: var(--muted); padding: 0.55rem 1.4rem;
+            border-radius: 8px; cursor: pointer; transition: all 0.25s;
+        }
+        .tab-btn:hover { color: var(--neon); border-color: rgba(0,245,212,0.3); }
+        .tab-btn.active {
+            color: var(--bg); background: var(--neon);
+            border-color: var(--neon); box-shadow: 0 0 20px rgba(0,245,212,0.5);
+        }
+
+        /* ─── WRAPPER ─── */
+        .page { position: relative; z-index: 1; }
+        .tab-content { display: none; animation: fadeUp 0.5s ease both; }
+        .tab-content.active { display: block; }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ─── HERO ─── */
+        .hero {
+            max-width: 1100px; margin: 0 auto; padding: 6rem 2rem 4rem;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+        }
+        @media (max-width: 760px) {
+            .hero { grid-template-columns: 1fr; padding: 3rem 1.5rem 2rem; gap: 2.5rem; }
+            .hero-visual { order: -1; }
+        }
+        .hero-eyebrow {
+            font-family: 'Orbitron', monospace; font-size: 0.7rem; letter-spacing: 0.3em;
+            text-transform: uppercase; color: var(--neon); margin-bottom: 1rem;
+            display: flex; align-items: center; gap: 0.6rem;
+        }
+        .hero-eyebrow::before { content: ''; display: inline-block; width: 24px; height: 1px; background: var(--neon); }
+        .hero-title {
+            font-family: 'Orbitron', monospace; font-size: clamp(2rem, 5vw, 3.2rem);
+            font-weight: 900; line-height: 1.1; margin-bottom: 1.5rem;
+        }
+        .hero-title .accent {
+            background: linear-gradient(90deg, var(--neon), var(--neon2));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .hero-desc { font-size: 1.15rem; color: var(--muted); line-height: 1.7; margin-bottom: 2.5rem; font-weight: 400; }
+        .hero-desc strong { color: var(--text); font-weight: 600; }
+        .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+        .btn-secondary {
+            display: inline-flex; align-items: center; gap: 0.6rem; background: transparent;
+            color: var(--text); font-family: 'Rajdhani', sans-serif; font-weight: 600;
+            font-size: 1rem; letter-spacing: 0.06em; text-transform: uppercase;
+            text-decoration: none; padding: 0.85rem 2rem; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.15); transition: all 0.25s; cursor: pointer;
+        }
+        .btn-secondary:hover { border-color: var(--neon); color: var(--neon); }
+        
+        .btn-wa {
+            display: inline-flex; align-items: center; gap: 0.6rem; background: var(--wa);
+            color: #fff; font-family: 'Rajdhani', sans-serif; font-weight: 700;
+            font-size: 1rem; letter-spacing: 0.06em; text-transform: uppercase;
+            text-decoration: none; padding: 0.85rem 2rem; border-radius: 8px;
+            transition: all 0.25s; box-shadow: 0 0 25px rgba(37,211,102,0.35); cursor: pointer;
+        }
+        .btn-wa:hover { transform: translateY(-3px); box-shadow: 0 0 45px rgba(37,211,102,0.6); }
+
+        /* ─── VIDEO BOX ─── */
+        .video-frame {
+            position: relative; border-radius: var(--radius); overflow: hidden;
+            background: var(--bg2); border: 1px solid rgba(0,245,212,0.2);
+            box-shadow: 0 0 0 1px rgba(0,245,212,0.08), 0 30px 80px rgba(0,0,0,0.7), 0 0 80px rgba(0,245,212,0.08) inset;
+        }
+        .video-frame video { display: block; width: 100%; border-radius: calc(var(--radius) - 1px); }
+        .video-badge {
+            position: absolute; top: 1rem; left: 1rem; background: rgba(6,6,18,0.8);
+            backdrop-filter: blur(10px); border: 1px solid rgba(0,245,212,0.3);
+            border-radius: 6px; padding: 0.35rem 0.7rem; font-family: 'Orbitron', monospace;
+            font-size: 0.6rem; letter-spacing: 0.15em; color: var(--neon);
+            display: flex; align-items: center; gap: 0.4rem;
+        }
+        .video-badge::before {
+            content: ''; width: 6px; height: 6px; border-radius: 50%;
+            background: var(--neon); box-shadow: 0 0 8px var(--neon); animation: blink 1.2s infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+        /* ─── CATALOG ─── */
+        .catalog-header { max-width: 1100px; margin: 0 auto 3rem; padding: 5rem 2rem 0; text-align: center; }
+        .catalog-grid {
+            max-width: 1100px; margin: 0 auto 5rem; padding: 0 2rem;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;
+        }
+
+        .game-card {
+            background: var(--glass); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius); overflow: hidden; transition: all 0.35s;
+            position: relative; display: flex; flex-direction: column;
+        }
+        .game-card:hover {
+            border-color: rgba(0,245,212,0.35); transform: translateY(-8px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), 0 0 40px rgba(0,245,212,0.08);
+        }
+        .game-thumb { position: relative; height: 180px; overflow: hidden; background: linear-gradient(135deg, #0d1b2a, #0d2a1a); }
+        .game-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s; }
+        .game-card:hover .game-thumb img { transform: scale(1.05); }
+        .game-tag {
+            position: absolute; top: 0.75rem; right: 0.75rem; background: rgba(6,6,18,0.8);
+            backdrop-filter: blur(8px); border: 1px solid rgba(0,245,212,0.3);
+            border-radius: 4px; padding: 0.2rem 0.55rem; font-family: 'Orbitron', monospace;
+            font-size: 0.55rem; letter-spacing: 0.12em; color: var(--neon);
+        }
+        
+        .game-body { padding: 1.5rem; flex: 1; display: flex; flex-direction: column; }
+        .game-title { font-family: 'Orbitron', monospace; font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0; }
+        .game-price { font-family: 'Orbitron', monospace; font-size: 1.2rem; font-weight: 900; color: var(--neon); }
+        .game-desc { font-size: 0.95rem; color: var(--muted); line-height: 1.6; flex: 1; margin-bottom: 1.2rem; margin-top: 0.6rem; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: auto; }
+        .btn-info {
+            flex: 1; text-align: center; background: rgba(255,255,255,0.05); color: var(--text);
+            border: 1px solid rgba(255,255,255,0.2); padding: 0.75rem; border-radius: 8px;
+            font-family: 'Rajdhani', sans-serif; font-weight: 700; text-transform: uppercase;
+            cursor: pointer; transition: all 0.2s; font-size: 0.9rem;
+        }
+        .btn-info:hover { background: rgba(255,255,255,0.1); border-color: var(--text); }
+        .btn-buy {
+            flex: 1.5; text-align: center; background: transparent; color: var(--neon);
+            border: 1px solid var(--neon); font-family: 'Rajdhani', sans-serif; font-weight: 700;
+            font-size: 0.9rem; letter-spacing: 0.05em; text-transform: uppercase;
+            text-decoration: none; padding: 0.75rem; border-radius: 8px; transition: all 0.2s;
+        }
+        .btn-buy:hover { background: var(--neon); color: var(--bg); box-shadow: 0 0 30px rgba(0,245,212,0.4); }
+
+        /* ─── MODALS (VENTANAS DE DETALLES) ─── */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(5, 5, 20, 0.85); backdrop-filter: blur(8px);
+            z-index: 1000; display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content {
+            background: var(--bg2); border: 1px solid var(--neon);
+            border-radius: var(--radius); width: 90%; max-width: 600px;
+            max-height: 85vh; overflow-y: auto; padding: 2rem;
+            position: relative; box-shadow: 0 0 40px rgba(0, 245, 212, 0.2);
+            transform: translateY(30px); transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+        .close-btn {
+            position: absolute; top: 15px; right: 20px; background: none; border: none;
+            color: var(--muted); font-size: 2rem; cursor: pointer; transition: color 0.2s; line-height: 1;
+        }
+        .close-btn:hover { color: var(--neon2); }
+        .modal-title { font-family: 'Orbitron', monospace; font-size: 1.6rem; color: var(--neon); margin-bottom: 0.5rem; }
+        .modal-subtitle { font-family: 'Orbitron', monospace; color: var(--neon2); margin-top: 1.5rem; margin-bottom: 1rem; font-size: 1.1rem; border-bottom: 1px solid rgba(247,0,255,0.3); padding-bottom: 5px;}
+        .modal-text { color: var(--text); line-height: 1.6; font-size: 1rem; margin-bottom: 1rem; }
+        
+        .gift-list { list-style: none; padding: 0; margin-bottom: 1.5rem; }
+        .gift-list li {
+            background: rgba(255,255,255,0.03); margin-bottom: 8px; padding: 12px;
+            border-radius: 8px; display: flex; align-items: center; gap: 15px;
+            border-left: 3px solid var(--neon);
+        }
+        .gift-icon { font-size: 1.8rem; }
+        .gift-desc strong { color: var(--neon); font-size: 1.05rem; display: block; margin-bottom: 2px;}
+        .gift-desc span { color: var(--muted); font-size: 0.9rem; }
+        .gift-list.villain li { border-left-color: var(--neon2); }
+        .gift-list.villain strong { color: var(--neon2); }
+
+        /* ─── CTA BANNER & FOOTER ─── */
+        .cta-banner { max-width: 1100px; margin: 0 auto 6rem; padding: 0 2rem; }
+        .cta-inner {
+            background: linear-gradient(135deg, rgba(0,245,212,0.07), rgba(247,0,255,0.07));
+            border: 1px solid rgba(0,245,212,0.2); border-radius: 24px; padding: 4rem 3rem; text-align: center;
+        }
+        .cta-title { font-family: 'Orbitron', monospace; font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 900; margin-bottom: 1rem; }
+        .cta-desc { color: var(--muted); font-size: 1.1rem; margin-bottom: 2rem; }
+        footer { border-top: 1px solid rgba(255,255,255,0.06); padding: 2rem; text-align: center; color: var(--muted); font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<nav>
+    <div class="nav-inner">
+        <div class="logo">EC StreamLand</div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab('inicio', this)">Inicio</button>
+            <button class="tab-btn" onclick="openTab('catalogo', this)">Juegos</button>
+        </div>
+    </div>
+</nav>
+
+<div class="page">
+
+    <div id="inicio" class="tab-content active">
+        <section class="hero">
+            <div class="hero-text">
+                <div class="hero-eyebrow">TikTok Live Monetization</div>
+                <h1 class="hero-title">
+                    Dispara tus<br><span class="accent">regalos & likes</span><br>en cada Live
+                </h1>
+                <p class="hero-desc">
+                    Overlays interactivos diseñados para <strong>TikFinity</strong> que convierten tu chat en protagonista. Más engagement, más regalos, más dinero.
+                </p>
+                <div class="hero-actions">
+                    <a href="https://wa.me/56927009015?text=Hola,%20me%20interesa%20un%20juego" target="_blank" class="btn-wa">📲 Contáctame</a>
+                    <button class="btn-secondary" onclick="openTab('catalogo', document.querySelectorAll('.tab-btn')[1])">Ver Juegos →</button>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="video-frame">
+                    <div class="video-badge">● EN VIVO</div>
+                    <video src="mivideo.mp4" controls autoplay muted loop></video>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="catalogo" class="tab-content">
+
+        <div class="catalog-header">
+            <h2 style="font-family:'Orbitron', monospace; font-size: 2.5rem; margin-bottom:1rem;">Catálogo de Juegos</h2>
+            <p style="color:var(--muted);font-size:1.1rem;">Cada juego está optimizado para maximizar la participación de tu audiencia.</p>
+        </div>
+
+        <div class="catalog-grid">
+
+            <div class="game-card">
+                <div class="game-thumb">
+                    <img src="portada-dropzone.jpg" alt="Drop Zone Simulator">
+                    <span class="game-tag">DESTACADO</span>
+                </div>
+                <div class="game-body">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="game-title">DropZone Simulator</h3>
+                        <span class="game-price">$10</span>
+                    </div>
+                    <p class="game-desc">Las fotos de perfil reales de tus espectadores caen estilo Plinko usando likes y regalos. ¡Incluye ranking en vivo!</p>
+                    <div class="btn-group">
+                        <button class="btn-info" onclick="openModal('modal-dropzone')">Ver Detalles</button>
+                        <a href="https://wa.me/56927009015?text=Hola,%20quiero%20el%20juego%20DropZone%20Simulator%20por%20$10" target="_blank" class="btn-buy">Comprar</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-thumb">
+                    <img src="portada-heroe.jpg" alt="Héroe vs Villano">
+                    <span class="game-tag">COMPETITIVO</span>
+                </div>
+                <div class="game-body">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="game-title">Héroe vs Villano</h3>
+                        <span class="game-price">$10</span>
+                    </div>
+                    <p class="game-desc">Guerra de bandos. El chat sube al héroe por 500 pisos, o lo ataca para hacerlo caer. ¡Poderes de Rayo, Tornado y Martillo!</p>
+                    <div class="btn-group">
+                        <button class="btn-info" onclick="openModal('modal-heroe')">Ver Detalles</button>
+                        <a href="https://wa.me/56927009015?text=Hola,%20quiero%20el%20juego%20Héroe%20vs%20Villano%20por%20$10" target="_blank" class="btn-buy">Comprar</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-thumb">
+                    <img src="portada-zombie.jpg" alt="Zombie Crush">
+                    <span class="game-tag">ÉPICO</span>
+                </div>
+                <div class="game-body">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="game-title">Zombie Crush: Fortress</h3>
+                        <span class="game-price">$10</span>
+                    </div>
+                    <p class="game-desc">Defiende la fortaleza de oleadas de zombies. El chat lanza bombas, misiles, nukes y coloca torretas automáticas. ¡Incluye jefes!</p>
+                    <div class="btn-group">
+                        <button class="btn-info" onclick="openModal('modal-zombie')">Ver Detalles</button>
+                        <a href="https://wa.me/56927009015?text=Hola,%20quiero%20el%20juego%20Zombie%20Crush%20por%20$10" target="_blank" class="btn-buy">Comprar</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-thumb">
+                    <img src="portada-plinko.jpg" alt="Plinko Pro">
+                    <span class="game-tag">CLÁSICO</span>
+                </div>
+                <div class="game-body">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 class="game-title">Plinko Pro: StreamLand</h3>
+                        <span class="game-price">$10</span>
+                    </div>
+                    <p class="game-desc">El clásico juego de caída libre. ¡Físicas realistas, multiplicadores extremos (hasta x200) y sistema de combos en vivo!</p>
+                    <div class="btn-group">
+                        <button class="btn-info" onclick="openModal('modal-plinko')">Ver Detalles</button>
+                        <a href="https://wa.me/56927009015?text=Hola,%20quiero%20el%20juego%20Plinko%20Pro%20por%20$10" target="_blank" class="btn-buy">Comprar</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="cta-banner">
+            <div class="cta-inner">
+                <h2 class="cta-title">¿Buscas algo personalizado?</h2>
+                <p class="cta-desc">Puedo crear un juego a medida con los colores y temática de tu canal.</p>
+                <a href="https://wa.me/56927009015?text=Hola,%20quiero%20un%20juego%20personalizado" target="_blank" class="btn-wa">📲 Pedir Personalizado</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <span style="font-family:'Orbitron'; font-weight:900; color:#00f5d4;">EC StreamLand</span><br>
+    © 2026 EC StreamLand · Juegos para TikTok Live · Hecho con 💙
+</footer>
+
+
+<div class="modal-overlay" id="modal-dropzone">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal('modal-dropzone')">&times;</button>
+        <h2 class="modal-title">DropZone Simulator</h2>
+        <p class="modal-text">Un simulador de impacto interactivo donde la pantalla se convierte en una zona de caída libre (estilo Plinko). El sistema captura la <b>foto de perfil real</b> de tus espectadores en TikTok y la deja caer por la pantalla rebotando hasta caer en multiplicadores de puntos.</p>
+        <p class="modal-text">Incluye un temporizador y un ranking en vivo automático para ver quién consigue más puntos.</p>
+        
+        <h3 class="modal-subtitle">🎁 Valores de Regalos y Acciones</h3>
+        <ul class="gift-list">
+            <li><div class="gift-icon">👍</div><div class="gift-desc"><strong>Likes en pantalla (30 Likes)</strong><span>Lanza 1 ficha del espectador.</span></div></li>
+            <li><div class="gift-icon">📤</div><div class="gift-desc"><strong>Compartir Live</strong><span>Lanza 3 fichas del espectador.</span></div></li>
+            <li><div class="gift-icon">🌹</div><div class="gift-desc"><strong>Rosa / Regalo GG (1 a 5 Coins)</strong><span>Ráfaga de 15 fichas a la vez.</span></div></li>
+            <li><div class="gift-icon">🍩</div><div class="gift-desc"><strong>Dona / Regalo Mediano (30 a 50 Coins)</strong><span>Lluvia masiva de 30 a 50 fichas de golpe.</span></div></li>
+            <li><div class="gift-icon">🧢</div><div class="gift-desc"><strong>Gorra / Corgi (100 Coins)</strong><span>Bombardeo de 100 fichas para dominar el ranking.</span></div></li>
+            <li><div class="gift-icon">🦁</div><div class="gift-desc"><strong>León / Sombrero (500+ Coins)</strong><span>Lluvia legendaria de 500 fichas.</span></div></li>
+        </ul>
+        <a href="https://wa.me/56927009015?text=Hola,%20quiero%20el%20juego%20DropZone%20Simulator%20por%20$10" target="_blank" class="btn-wa" style="width: 100%; text-align: center; justify-content: center; margin-top: 10px;">Comprar este juego - $10</a>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-heroe">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal('modal-heroe')">&times;</button>
+        <h2 class="modal-title">Héroe vs Villano</h2>
+        <p class="modal-text">Guerra de bandos en formato vertical. El objetivo del chat es hacer que el Héroe escale 500 pisos hasta la cima enviando apoyo, pero los "villanos" pueden enviar ataques para hacerlo caer. ¡Incluye animaciones épicas y temblor de pantalla!</p>
+        
+        <h3 class="modal-subtitle" style="color:#00ff88; border-color:#00ff88;">🦸 Equipo Héroe (Ayuda a subir)</h3>
+        <ul class="gift-list" style="border-left-color: #00ff88;">
+            <li style="border-left-color: #00ff88;"><div class="gift-icon">👍</div><div class="gift-desc"><strong style="color:#00ff88;">30 Likes en pantalla</strong><span>El Héroe sube 1 piso.</span></div></li>
+            <li style="border-left-color: #00ff88;"><div class="gift-icon">🌹</div><div class="gift-desc"><strong style="color:#00ff88;">Rosa</strong><span>Impulso: El Héroe sube 5 pisos.</span></div></li>
+            <li style="border-left-color: #00ff88;"><div class="gift-icon">🍩</div><div class="gift-desc"><strong style="color:#00ff88;">Dona</strong><span>Súper salto: Sube 100 pisos.</span></div></li>
+            <li style="border-left-color: #00ff88;"><div class="gift-icon">🧢</div><div class="gift-desc"><strong style="color:#00ff88;">Gorra</strong><span>Activa ALAS y vuela 300 pisos de golpe.</span></div></li>
+        </ul>
+
+        <h3 class="modal-subtitle" style="color:#ff2d78; border-color:#ff2d78;">💀 Equipo Villano (Ataques para bajar)</h3>
+        <ul class="gift-list villain" style="border-left-color: #ff2d78;">
+            <li style="border-left-color: #ff2d78;"><div class="gift-icon">🎮</div><div class="gift-desc"><strong style="color:#ff2d78;">Regalo GG</strong><span>Golpe de Martillo: El Héroe cae 5 pisos.</span></div></li>
+            <li style="border-left-color: #ff2d78;"><div class="gift-icon">🦫</div><div class="gift-desc"><strong style="color:#ff2d78;">Capibara</strong><span>Rayo Destructor: El Héroe cae 100 pisos.</span></div></li>
+            <li style="border-left-color: #ff2d78;"><div class="gift-icon">🥸</div><div class="gift-desc"><strong style="color:#ff2d78;">Sombrero con Bigote</strong><span>Tornado Masivo: El Héroe cae 300 pisos.</span></div></li>
+        </ul>
+        <a href="https://wa.me/56927009015?text=Hola,%20quiero%20el%20juego%20Héroe%20vs%20Villano%20por%20$10" target="_blank" class="btn-wa" style="width: 100%; text-align: center; justify-content: center; margin-top: 10px;">Comprar este juego - $10</a>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-zombie">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal('modal-zombie')">&times;</button>
+        <h2 class="modal-title">Zombie Crush: Fortress Edition</h2>
+        <p class="modal-text">Juego de supervivencia (Tower Defense). El chat debe proteger un castillo de oleadas de zombies. Cuenta con sistema de clima (lluvia), jefes gigantes, zombies que curan, y físicas explosivas.</p>
+        
+        <h3 class="modal-subtitle">🎁 Valores de Armas y Acciones</h3>
+        <ul class="gift-list">
+            <li><div class="gift-icon">💣</div><div class="gift-desc"><strong>30 Likes / Compartir</strong><span>Caen bombas básicas para aplastar zombies.</span></div></li>
+            <li><div class="gift-icon">🚀</div><div class="gift-desc"><strong>Rosa / Regalo GG (1 a 5 Coins)</strong><span>Ráfaga de 15 a 30 Cohetes penetrantes.</span></div></li>
+            <li><div class="gift-icon">❄️</div><div class="gift-desc"><strong>Regalos Medianos (50 Coins)</strong><span>Ataque Congelante (Freeze): Paraliza a todos los zombies.</span></div></li>
+            <li><div class="gift-icon">☢️</div><div class="gift-desc"><strong>Regalos Grandes (100 a 500 Coins)</strong><span>Bomba Nuclear (Nuke): Limpia la pantalla completa de enemigos.</span></div></li>
+            <li><div class="gift-icon">🔫</div><div class="gift-desc"><strong>Torreta (ID Configurable)</strong><span>Instala una torreta defensiva en el suelo que dispara sola. ¡Lleva el nombre del espectador!</span></div></li>
+            <li><div class="gift-icon">💖</div><div class="gift-desc"><strong>Curación (ID Configurable)</strong><span>Recupera la salud (HP) del castillo si está a punto de caer.</span></div></li>
+        </ul>
+        <a href="https://wa.me/56927009015?text=Hola,%20quiero%20el%20juego%20Zombie%20Crush%20por%20$10" target="_blank" class="btn-wa" style="width: 100%; text-align: center; justify-content: center; margin-top: 10px;">Comprar este juego - $10</a>
+    </div>
+</div>
+
+<div class="modal-overlay" id="modal-plinko">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeModal('modal-plinko')">&times;</button>
+        <h2 class="modal-title">Plinko Pro: StreamLand Edition</h2>
+        <p class="modal-text">Un sistema de caída libre visual diseñado estratégicamente como una competencia interactiva de físicas de gravedad. Los espectadores compiten en un ranking global buscando alcanzar las zonas con multiplicadores altos (hasta x200). Incluye sistema de combos en vivo.</p>
+        <p class="modal-text" style="color: var(--neon-green); font-size: 0.85rem; padding: 10px; border-left: 3px solid var(--neon-green); background: rgba(0, 255, 136, 0.05);">🛡️ <b>Tip Comercial:</b> Promociona este juego ante tu audiencia como un "simulador de físicas y destreza", para ayudar a mantener el canal seguro y cumplir con las normativas de la plataforma alejándolo de la etiqueta de "juegos de azar".</p>
+        
+        <h3 class="modal-subtitle">🎁 Valores de Regalos y Acciones</h3>
+        <ul class="gift-list">
+            <li><div class="gift-icon">👍</div><div class="gift-desc"><strong>Likes (Cada 30)</strong><span>Lanza 1 ficha básica de competición.</span></div></li>
+            <li><div class="gift-icon">📤</div><div class="gift-desc"><strong>Compartir Live</strong><span>Lanza 3 fichas.</span></div></li>
+            <li><div class="gift-icon">🌹</div><div class="gift-desc"><strong>Regalos Básicos</strong><span>Lluvia de 5 fichas simultáneas.</span></div></li>
+            <li><div class="gift-icon">🔥</div><div class="gift-desc"><strong>IDs 5655 / 6064</strong><span>Lanza ráfaga de 15 fichas.</span></div></li>
+            <li><div class="gift-icon">🍩</div><div class="gift-desc"><strong>ID 5487</strong><span>Lluvia concentrada de 30 fichas.</span></div></li>
+            <li><div class="gift-icon">🚀</div><div class="gift-desc"><strong>ID 5879</strong><span>Descarga de 50 fichas al tablero.</span></div></li>
+            <li><div class="gift-icon">💎</div><div class="gift-desc"><strong>ID 6104</strong><span>Tormenta masiva de 100 fichas.</span></div></li>
+            <li><div class="gift-icon">👑</div><div class="gift-desc"><strong>ID 7168 (Regalos Top)</strong><span>Avalancha legendaria de 500 fichas de golpe.</span></div></li>
+        </ul>
+        <a href="https://wa.me/56927009015?text=Hola,%20quiero%20el%20juego%20Plinko%20Pro%20por%20$10" target="_blank" class="btn-wa" style="width: 100%; text-align: center; justify-content: center; margin-top: 10px;">Comprar este juego - $10</a>
+    </div>
+</div>
+
+<script>
+    /* ── TAB SWITCHER ── */
+    function openTab(id, btn) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if (btn) btn.classList.add('active');
+    }
+
+    /* ── MODAL CONTROLLERS ── */
+    function openModal(modalId) {
+        document.getElementById(modalId).classList.add('active');
+        document.body.style.overflow = 'hidden'; 
+    }
+
+    function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+        document.body.style.overflow = 'auto'; 
+    }
+
+    // Cerrar el modal haciendo clic fuera
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal-overlay')) {
+            event.target.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    /* ── PARTICLE BG ── */
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, particles = [];
+
+    function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    class Particle {
+        constructor() { this.reset(); }
+        reset() {
+            this.x = Math.random() * W;
+            this.y = Math.random() * H;
+            this.r = Math.random() * 1.5 + 0.3;
+            this.vx = (Math.random() - 0.5) * 0.3;
+            this.vy = (Math.random() - 0.5) * 0.3;
+            this.alpha = Math.random() * 0.4 + 0.05;
+            this.color = Math.random() > 0.5 ? '0,245,212' : '247,0,255';
+        }
+        update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            if (this.x < 0 || this.x > W || this.y < 0 || this.y > H) this.reset();
+        }
+        draw() {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${this.color},${this.alpha})`;
+            ctx.fill();
+        }
+    }
+
+    for (let i = 0; i < 120; i++) particles.push(new Particle());
+
+    function loop() {
+        ctx.clearRect(0, 0, W, H);
+        ctx.strokeStyle = 'rgba(0,245,212,0.025)';
+        ctx.lineWidth = 1;
+        const gs = 80;
+        for (let x = 0; x < W; x += gs) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+        for (let y = 0; y < H; y += gs) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+        particles.forEach(p => { p.update(); p.draw(); });
+
+        particles.forEach((a, i) => {
+            for (let j = i+1; j < particles.length; j++) {
+                const b = particles[j];
+                const d = Math.hypot(a.x-b.x, a.y-b.y);
+                if (d < 100) {
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.strokeStyle = `rgba(0,245,212,${0.06*(1-d/100)})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            }
+        });
+        requestAnimationFrame(loop);
+    }
+    loop();
+</script>
+</body>
+</html>
